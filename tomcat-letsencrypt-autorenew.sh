@@ -2,7 +2,7 @@
 set -ex
 DOMAIN=""
 TOMCAT_KEY_PASS=""
-CERTBBOT_BIN="/usr/local/bin/certbot-auto"
+CERTBOT_BIN="/usr/local/bin/certbot-auto"
 EMAIL_NOTIFICATION="email_address"
 
 # Install certbot
@@ -15,34 +15,25 @@ install_certbot () {
 }
 
 # Attempt cert renewal:
-renew_ssl () {
-    ${CERTBOT_BIN} renew  > /tmp/crt.txt
-    cat /tmp/crt.txt | grep "No renewals were attempted"
+renew_ssl () {    
+    ${CERTBOT_BIN} certonly --webroot -w /usr/share/tomcat/webapps --keep -d ${DOMAIN} > /tmp/crt.txt
+    
+    cat /tmp/crt.txt | grep "Certificate not yet due for renewal"
     if [[ $? -eq "0" ]]; then
         echo "Cert not yet due for renewal"
         exit 0
     else
-
-    # Create Letsencypt ssl dir if doesn't exist
-    echo "Renewing ssl certificate..."
-
-    # create a PKCS12 that contains both your full chain and the private key
-     rm -f /tmp/${DOMAIN}_fullchain_and_key.p12 2>/dev/null
-     openssl pkcs12 -export -out /tmp/${DOMAIN}_fullchain_and_key.p12 \
-       -passin pass:$TOMCAT_KEY_PASS \
-       -passout pass:$TOMCAT_KEY_PASS \
-       -in /etc/letsencrypt/live/$DOMAIN/fullchain.pem \
-       -inkey /etc/letsencrypt/live/$DOMAIN/privkey.pem \
-       -name tomcat
- fi
- }
-
-      # Convert that PKCS12 to a JKS
-    rm -f /etc/ssl/${DOMAIN}.jks 2>/dev/null
-    keytool -importkeystore -deststorepass $TOMCAT_KEY_PASS -destkeypass $TOMCAT_KEY_PASS \
-      -destkeystore /etc/ssl/${DOMAIN}.jks -srckeystore /tmp/${DOMAIN}_fullchain_and_key.p12  \
-      -srcstoretype PKCS12 -srcstorepass $TOMCAT_KEY_PASS \
-      -alias tomcat
+        # Create Letsencypt ssl dir if doesn't exist
+        echo "Renewing ssl certificate..."
+        # copy keys to tomcatFolder /etc/letsencrypt/live/    
+        cd /etc/letsencrypt/live/${DOMAIN}
+        cp cert.pem /usr/share/tomcat/conf
+        cp chain.pem /usr/share/tomcat/conf
+        cp privkey.pem /usr/share/tomcat/conf
+        chown tomcat:tomcat /usr/share/tomcat/conf/*.pem     
+        systemctl restart tomcat
+    fi
+}
 
 # Send email notification on completion
 send_email_notification () {
