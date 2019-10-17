@@ -9,7 +9,7 @@ For more details on prerequistes for this script, visit the page > [Bash Script 
 First clone the repository:
 
 ```
-$ git clone https://github.com/jmutai/tomcat-letsencrypt.git
+$ git clone https://github.com/danilloborges/tomcat-letsencrypt.git
 $ cd tomcat-letsencrypt
 ```
 
