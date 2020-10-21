@@ -27,9 +27,9 @@ renew_ssl () {
         echo "Renewing ssl certificate..."
         # copy keys to tomcatFolder /etc/letsencrypt/live/    
         cd /etc/letsencrypt/live/${DOMAIN}
-        yes | cp cert.pem /usr/share/tomcat/conf
-        yes | cp chain.pem /usr/share/tomcat/conf
-        yes | cp privkey.pem /usr/share/tomcat/conf
+        yes | cp -L cert.pem /usr/share/tomcat/conf
+        yes | cp -L chain.pem /usr/share/tomcat/conf
+        yes | cp -L privkey.pem /usr/share/tomcat/conf
         chown tomcat:tomcat /usr/share/tomcat/conf/*.pem     
         systemctl restart tomcat
     fi
